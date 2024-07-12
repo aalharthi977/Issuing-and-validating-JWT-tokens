@@ -1,4 +1,4 @@
-package com.talents.acquisition.configuration;
+package com.talents.acquisition.security;
 
 import com.talents.acquisition.model.MyUser;
 import com.talents.acquisition.repo.MyUserRepo;
@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 @Service
 public class MyUserDetailsService implements UserDetailsService {
@@ -22,15 +21,6 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//        myUserRepo.findByUsername(username).ifPresentOrElse(
-//                user -> return User.builder()
-//                        .username()
-//                        .password("$2a$12$fVji/uixGlV0UHQax9eBBeTdHT.ScOe3IMddds7BwtXknwZgJyDxK")
-//                        .roles("ADMIN", "OPERATOR")
-//                        .build();,
-//                () -> throw new UsernameNotFoundException("User not found: " + username);
-//        );
-
         Optional<MyUser> user = myUserRepo.findByUsername(username);
         if (user.isPresent()) {
             var userObj = user.get();
@@ -51,5 +41,4 @@ public class MyUserDetailsService implements UserDetailsService {
         }
         return user.getRole().split(",");
     }
-
 }

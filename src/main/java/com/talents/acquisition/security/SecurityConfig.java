@@ -1,27 +1,28 @@
-package com.talents.acquisition.configuration;
+package com.talents.acquisition.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.security.AuthProvider;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
     private MyUserDetailsService myUserDetailsService;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfig(MyUserDetailsService myUserDetailsService) {
         this.myUserDetailsService = myUserDetailsService;
@@ -38,23 +39,9 @@ public class SecurityConfig {
                     register.anyRequest().authenticated();
         })
                 .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
-
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        UserDetails normalUser = User.builder()
-//                .username("gc")
-//                .password("$2a$12$fVji/uixGlV0UHQax9eBBeTdHT.ScOe3IMddds7BwtXknwZgJyDxK")
-//                .roles("OPERATOR")
-//                .build();
-//        UserDetails adminUser = User.builder()
-//                .username("admin")
-//                .password("$2a$12$fVji/uixGlV0UHQax9eBBeTdHT.ScOe3IMddds7BwtXknwZgJyDxK")
-//                .roles("ADMIN", "OPERATOR")
-//                .build();
-//        return new InMemoryUserDetailsManager(normalUser, adminUser);
-//    }
 
     @Bean
     public UserDetailsService userDetailsService(){
@@ -67,7 +54,11 @@ public class SecurityConfig {
         provider.setUserDetailsService(myUserDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
+    }
 
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        return new ProviderManager(authProvider());
     }
 
     @Bean
